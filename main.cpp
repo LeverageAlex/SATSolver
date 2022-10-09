@@ -195,7 +195,11 @@ void evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
         }
 
         // last value on stack is value of expression
-        std::cout << "Evaluation Value is " << *vals.top() << std::endl;
+        bool* result = vals.top();
+        std::cout << "Evaluation Value is " << *result << std::endl;
+        vals.pop();
+        delete result;
+
 
 
 
