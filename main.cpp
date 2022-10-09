@@ -4,41 +4,43 @@
 #include <map>
 #include <stack>
 #include <valarray>
-#include "Tree/AbstractNode.h"
 #include "Tree/ValueNode.h"
-#include "Tree/Node.h"
 
 using std::string, std::map;
 
 string unformattedFormula;
 std::set<string> partialFormulas;
 std::map<string, ValueNode*> evalLeaves;
-AbstractNode root;
 
 
 void getInput();
 std::set<string> generatePartialFormulas(string orgFormula);
 void printSet(std::set<string> &setToPrint);
 void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, ValueNode*> &evalTree);
-void buildTree(AbstractNode &root, std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
 bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
 bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula);
 void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved);
+bool isSolveAble(string &formula);
 
 int main() {
+    //setup
     getInput();
-    partialFormulas = generatePartialFormulas(unformattedFormula);
 
-    generateEvalLeaves(partialFormulas, evalLeaves);
-
-    bool solved = generateAndTest(evalLeaves, unformattedFormula);
-    printAssignment(evalLeaves, unformattedFormula, solved);
-
-
+    //solve
+    bool solved = isSolveAble(unformattedFormula);
+    if (solved)
+    printAssignment(evalLeaves, unformattedFormula, true);
 
     return 0;
 }
 
+
+
+/**
+ * Filters every literal in orgFormula
+ * @param orgFormula
+ * @return
+ */
 std::set<string> generatePartialFormulas(string orgFormula) {
     string space_delimiter = " ";
     std::set<string> partialFormulas;
@@ -73,6 +75,11 @@ std::set<string> generatePartialFormulas(string orgFormula) {
     return partialFormulas;
 }
 
+/**
+ * Generates for each literal in set a corresponding node for evaluation
+ * @param partialFormulas
+ * @param evalTree
+ */
 void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, ValueNode*> &evalTree) {
     for (const string &part: partialFormulas) {
         evalTree.insert(std::pair<string,ValueNode*> (part, new ValueNode()));
@@ -80,27 +87,7 @@ void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, Valu
 }
 
 
-void buildTree(AbstractNode &root, std::map<string, ValueNode*> &evalLeaves, string unformattedFormula) {
-    AbstractNode* currentNodeHolder {nullptr};
-    string space_delimiter = " ";
-    size_t pos = 0;
 
-    while ((pos = unformattedFormula.find(space_delimiter)) != string::npos) {
-        if(currentNodeHolder == nullptr) {
-            currentNodeHolder = new Node(  evalLeaves.at(unformattedFormula.substr(0, pos)) );
-            unformattedFormula.erase(0, pos + space_delimiter.length());
-
-        }
-        else {
-
-
-
-        }
-
-    }
-
-
-}
 
 /**
  * Generates all possible assignments
@@ -130,7 +117,7 @@ bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformatt
         //Assignment generated
         //Now test values
         if(evaluateExpression(evalLeaves, unformattedFormula)) {
-            std::cout << "Found valid Assignment with number: " << std::to_string(i) << std::endl;
+            //std::cout << "Found valid Assignment with number: " << std::to_string(i) << std::endl;
             return true;
         }
     }
@@ -140,13 +127,26 @@ bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformatt
 }
 
 
-
+/**
+ * Evaluates the passed expression
+ * @param op
+ * @param val1
+ * @param val2
+ * @return bool
+ */
 bool* eval(const string &op, bool val1, bool val2) {
     if (op == "&") return new bool {val1 && val2};
     if (op == "|") return new bool {val1 || val2};
     throw std::invalid_argument( "Invalid operator" );
 }
 
+/**
+ * Parses the unformatted expression in an proper manner to solve the equation in right order (brackets bind stronger
+ * than &, & binds stronger than |) and evalutes it with the assignment in evalLeaves
+ * @param evalLeaves
+ * @param unformattedFormula
+ * @return
+ */
 bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula) {
 
     std::map<string, int> precedence = std::map<string, int>();
@@ -203,10 +203,8 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
             }
             else if(*op == "-") {
                 bool* val2 = vals.top();
-         //       vals.pop();
                 *val2 = !*val2;
                 delete op;
-             //   vals.push(val2);
 
 
             }
@@ -263,6 +261,12 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
 
 }
 
+/**
+ * Prints current assignment in evalLeaves
+ * @param evalLeaves
+ * @param unformattedFormula
+ * @param solved
+ */
 void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved) {
     for (auto leaf: evalLeaves) {
         std::cout << leaf.first << "   ";
@@ -283,7 +287,10 @@ void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformatt
 
 
 
-
+/**
+ * Debug method for printing all unique literals in passed formula
+ * @param setToPrint
+ */
 void printSet(std::set<string> &setToPrint) {
     for (const string &part: partialFormulas) {
         std::cout << part << std::endl;
@@ -292,8 +299,24 @@ void printSet(std::set<string> &setToPrint) {
 
 
 
-
+/**
+ * Reads from stdin the formula to evaluate
+ */
 void getInput() {
     std::cout << "Enter your SAT formula (use & for and, | for or): " << std::endl;
     std::getline(std::cin, unformattedFormula);
+}
+
+/**
+ * Tries to solve passed formula
+ * @param formula
+ * @return whether formula is solveable
+ */
+bool isSolveAble(string &formula) {
+    //setup
+    partialFormulas = generatePartialFormulas(unformattedFormula);
+    generateEvalLeaves(partialFormulas, evalLeaves);
+
+    //solve formula
+    return generateAndTest(evalLeaves, unformattedFormula);
 }
