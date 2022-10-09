@@ -3,6 +3,7 @@
 #include <set>
 #include <map>
 #include <stack>
+#include <valarray>
 #include "Tree/AbstractNode.h"
 #include "Tree/ValueNode.h"
 #include "Tree/Node.h"
@@ -20,7 +21,8 @@ std::set<string> generatePartialFormulas(string orgFormula);
 void printSet(std::set<string> &setToPrint);
 void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, ValueNode*> &evalTree);
 void buildTree(AbstractNode &root, std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
-void evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
+bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
+bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula);
 
 int main() {
     getInput();
@@ -29,11 +31,8 @@ int main() {
     printSet(partialFormulas);
     generateEvalLeaves(partialFormulas, evalLeaves);
 
-   // buildTree(root,  evalLeaves, unformattedFormula);
 
-    evalLeaves.at("A")->setEvaluationValue(true);
-    evaluateExpression(evalLeaves, unformattedFormula);
-
+    generateAndTest(evalLeaves, unformattedFormula);
 
 
 
@@ -99,6 +98,43 @@ void buildTree(AbstractNode &root, std::map<string, ValueNode*> &evalLeaves, str
 
 }
 
+/**
+ * Generates all possible assignments
+ * @param evalLeaves
+ * @param unformattedFormula
+ */
+bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula) {
+    int upperBound = int (std::pow( 2, evalLeaves.size()));
+    int index;
+    for (int i = 0; i < upperBound; ++i) {
+        int j = i;
+        index = evalLeaves.size()-1;
+
+        //Put int to binary values
+        for (auto node: evalLeaves) {
+            int evaluation = int (std::pow(2, index));
+            int frac = j / evaluation;
+            if(frac > 0) {
+                node.second->setEvaluationValue(true);
+                j -= evaluation;
+            }
+            else {
+                node.second->setEvaluationValue(false);
+            }
+            --index;
+        }
+        //Assignment generated
+        //Now test values
+        if(evaluateExpression(evalLeaves, unformattedFormula)) {
+            std::cout << "Found valid Assignment with number: " << std::to_string(i) << std::endl;
+            return true;
+        }
+    }
+    std::cout << "There was no valid assignment found!" << std::endl;
+    return false;
+
+}
+
 
 
 bool* eval(const string &op, bool val1, bool val2) {
@@ -107,7 +143,7 @@ bool* eval(const string &op, bool val1, bool val2) {
     throw std::invalid_argument( "Invalid operator" );
 }
 
-void evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula) {
+bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula) {
 
     std::map<string, int> precedence = std::map<string, int>();
     precedence.insert(std::pair<string, int>("(", 0));
@@ -183,6 +219,7 @@ void evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
         while (!ops.empty()) {
             string* op = ops.top();
             ops.pop();
+
             bool* val2 = vals.top();
             vals.pop();
             bool* val1 = vals.top();
@@ -196,10 +233,12 @@ void evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
 
         // last value on stack is value of expression
         bool* result = vals.top();
-        std::cout << "Evaluation Value is " << *result << std::endl;
+        bool x = {*result};
+        std::cout << "Evaluation Value is " << x << std::endl;
         vals.pop();
+
         delete result;
-
+        return x;
 
 
 
@@ -211,15 +250,6 @@ void evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
 
 
 
-
-
-
-
-
-
-inline void setEvalValue(std::map<string, ValueNode*> &list, string &variable, bool evalValue) {
-    list.at(variable)->setEvaluationValue(evalValue);
-}
 
 
 
