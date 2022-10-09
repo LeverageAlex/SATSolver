@@ -13,23 +13,26 @@ std::set<string> partialFormulas;
 std::map<string, ValueNode*> evalLeaves;
 
 
-void getInput();
+void getInput(string &unformattedFormula);
 std::set<string> generatePartialFormulas(string orgFormula);
 void printSet(std::set<string> &setToPrint);
 void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, ValueNode*> &evalTree);
 bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
-bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula);
-void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved);
+bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool printSteps = false);
+void printCurrentAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved);
 bool isSolveAble(string &formula);
+inline void printAssignmentTableHead(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula);
+inline void printAssignementTableLine(std::map<string, ValueNode*> &evalLeaves, bool solved);
+void printTruthTable(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula);
 
 int main() {
     //setup
-    getInput();
+    getInput(unformattedFormula);
 
     //solve
     bool solved = isSolveAble(unformattedFormula);
     if (solved)
-    printAssignment(evalLeaves, unformattedFormula, true);
+    printCurrentAssignment(evalLeaves, unformattedFormula, true);
 
     return 0;
 }
@@ -90,11 +93,13 @@ void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, Valu
 
 
 /**
- * Generates all possible assignments
+ * Generates all possible assignments until valid assignment found. If there is none returns false.
+ * If parameter printSteps is set to true (default false) it will always return true, but print every testable assignment to stdout
  * @param evalLeaves
  * @param unformattedFormula
+ * @param printSteps
  */
-bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula) {
+bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool printSteps) {
     int upperBound = int (std::pow( 2, evalLeaves.size()));
     int index;
     for (int i = 0; i < upperBound; ++i) {
@@ -118,8 +123,11 @@ bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformatt
         //Now test values
         if(evaluateExpression(evalLeaves, unformattedFormula)) {
             //std::cout << "Found valid Assignment with number: " << std::to_string(i) << std::endl;
+            if(!printSteps)
             return true;
+            else printAssignementTableLine(evalLeaves, true);
         }
+        else if(printSteps) printAssignementTableLine(evalLeaves, false);
     }
     std::cout << "There was no valid assignment found!" << std::endl;
     return false;
@@ -267,11 +275,30 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
  * @param unformattedFormula
  * @param solved
  */
-void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved) {
+void printCurrentAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved) {
+    printAssignmentTableHead(evalLeaves, unformattedFormula);
+    printAssignementTableLine(evalLeaves, solved);
+}
+
+
+/**
+ * Prints only the head of a truth table
+ * @param evalLeaves
+ * @param unformattedFormula
+ */
+inline void printAssignmentTableHead(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula) {
     for (auto leaf: evalLeaves) {
         std::cout << leaf.first << "   ";
     }
     std::cout << unformattedFormula << std::endl;
+}
+
+/**
+ * Prints the current assignment without literal headers
+ * @param evalLeaves
+ * @param solved
+ */
+inline void printAssignementTableLine(std::map<string, ValueNode*> &evalLeaves, bool solved) {
     for (auto leaf: evalLeaves) {
         std::cout << std::to_string(leaf.second->getEvaluationValue()) << "   ";
         for (int i = 0; i < leaf.first.length()-1; ++i) {
@@ -282,7 +309,15 @@ void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformatt
     else std::cout << "0" << std::endl;
 }
 
-
+/**
+ * Prints the all possible assignments for unformattedFormula with its corresponding evaluation values
+ * @param evalLeaves
+ * @param unformattedFormula
+ */
+inline void printTruthTable(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula) {
+    printAssignmentTableHead(evalLeaves, unformattedFormula);
+    generateAndTest(evalLeaves, unformattedFormula, true);
+}
 
 
 
@@ -302,7 +337,7 @@ void printSet(std::set<string> &setToPrint) {
 /**
  * Reads from stdin the formula to evaluate
  */
-void getInput() {
+void getInput(string &unformattedFormula) {
     std::cout << "Enter your SAT formula (use & for and, | for or): " << std::endl;
     std::getline(std::cin, unformattedFormula);
 }
