@@ -23,14 +23,16 @@ void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, Valu
 void buildTree(AbstractNode &root, std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
 bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unformattedFormula);
 bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula);
+void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved);
 
 int main() {
     getInput();
     partialFormulas = generatePartialFormulas(unformattedFormula);
 
     generateEvalLeaves(partialFormulas, evalLeaves);
-    
-    generateAndTest(evalLeaves, unformattedFormula);
+
+    bool solved = generateAndTest(evalLeaves, unformattedFormula);
+    printAssignment(evalLeaves, unformattedFormula, solved);
 
 
 
@@ -62,6 +64,10 @@ std::set<string> generatePartialFormulas(string orgFormula) {
 
     if( partialFormulas.find(")") != partialFormulas.end()) {
         partialFormulas.erase(partialFormulas.find(")"));
+    }
+
+    if( partialFormulas.find("-") != partialFormulas.end()) {
+        partialFormulas.erase(partialFormulas.find("-"));
     }
 
     return partialFormulas;
@@ -250,18 +256,26 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
         // last value on stack is value of expression
         bool* result = vals.top();
         bool x = {*result};
-        std::cout << "Evaluation Value is " << x << std::endl;
         vals.pop();
 
         delete result;
         return x;
 
+}
 
-
-
-
-
-
+void printAssignment(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool solved) {
+    for (auto leaf: evalLeaves) {
+        std::cout << leaf.first << "   ";
+    }
+    std::cout << unformattedFormula << std::endl;
+    for (auto leaf: evalLeaves) {
+        std::cout << std::to_string(leaf.second->getEvaluationValue()) << "   ";
+        for (int i = 0; i < leaf.first.length()-1; ++i) {
+            std::cout << " ";
+        }
+    }
+    if(solved) std::cout << "1" << std::endl;
+    else std::cout << "0" << std::endl;
 }
 
 
