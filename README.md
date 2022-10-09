@@ -25,3 +25,6 @@ As API: Remove the main-method, then use isSolveAble(formula..) for solving your
 If you wish to see solving assignment, call after solving printCurrentAssignment(..).
 
 It is also notable to mention that it is also possibile to print whole truthtables to stdout with printTruthTable(..).
+
+Large example:
+A & ( - B | C ) & D & ( D & E ) & ( P | E ) & ( D | F ) & H & J & - P & X & Y & ( - Z ) & - X

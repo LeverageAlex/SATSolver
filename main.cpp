@@ -161,7 +161,7 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
     std::map<string, int> precedence = std::map<string, int>();
     precedence.insert(std::pair<string, int>("(", 0));
     precedence.insert(std::pair<string, int>(")", 0));
-    precedence.insert(std::pair<string, int>("|", 1));   // + and - have lower precedence than * and /
+    precedence.insert(std::pair<string, int>("|", 1));   
     precedence.insert(std::pair<string, int>("&", 2));
     precedence.insert(std::pair<string, int>("-", 3));
 
