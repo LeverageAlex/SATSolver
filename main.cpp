@@ -28,10 +28,8 @@ int main() {
     getInput();
     partialFormulas = generatePartialFormulas(unformattedFormula);
 
-    printSet(partialFormulas);
     generateEvalLeaves(partialFormulas, evalLeaves);
-
-
+    
     generateAndTest(evalLeaves, unformattedFormula);
 
 
@@ -150,6 +148,7 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
     precedence.insert(std::pair<string, int>(")", 0));
     precedence.insert(std::pair<string, int>("|", 1));   // + and - have lower precedence than * and /
     precedence.insert(std::pair<string, int>("&", 2));
+    precedence.insert(std::pair<string, int>("-", 3));
 
     std::stack<string*> ops  = std::stack<string*>();
     std::stack<bool*> vals = std::stack<bool*>();
@@ -188,21 +187,34 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
             }
 
             // evaluate expression
-            string op = *ops.top();
+            string* op = ops.top();
             ops.pop();
 
             // but ignore left parentheses
-            if (op == "(") {
+            if (*op == "(") {
+                delete op;
                 break;
+            }
+            else if(*op == "-") {
+                bool* val2 = vals.top();
+         //       vals.pop();
+                *val2 = !*val2;
+                delete op;
+             //   vals.push(val2);
+
+
             }
 
                 // evaluate operator and two operands and push result onto value stack
             else {
-                bool val2 = *vals.top();
+                bool* val2 = vals.top();
                 vals.pop();
-                bool val1 = *vals.top();
+                bool* val1 = vals.top();
                 vals.pop();
-                vals.push(eval(op, val1, val2));
+                vals.push(eval(*op, *val1, *val2));
+                delete val1;
+                delete val2;
+                delete op;
             }
         }
         if(pos != string::npos) {
@@ -219,16 +231,20 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
         while (!ops.empty()) {
             string* op = ops.top();
             ops.pop();
-
-            bool* val2 = vals.top();
-            vals.pop();
-            bool* val1 = vals.top();
-            vals.pop();
-            vals.push(eval(*op, *val1, *val2));
-            delete val1;
-            delete val2;
-            delete op;
-
+            bool *val2 = vals.top();
+            if(*op == "-") {
+                *val2 = !*val2;
+                delete op;
+            }
+            else {
+                vals.pop();
+                bool *val1 = vals.top();
+                vals.pop();
+                vals.push(eval(*op, *val1, *val2));
+                delete val1;
+                delete val2;
+                delete op;
+            }
         }
 
         // last value on stack is value of expression
