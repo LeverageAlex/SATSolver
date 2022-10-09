@@ -105,10 +105,10 @@ bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformatt
     for (int i = 0; i < upperBound; ++i) {
         int j = i;
         index = evalLeaves.size()-1;
-
+        int evaluation = int (std::pow(2, index));
         //Put int to binary values
         for (auto node: evalLeaves) {
-            int evaluation = int (std::pow(2, index));
+
             int frac = j / evaluation;
             if(frac > 0) {
                 node.second->setEvaluationValue(true);
@@ -117,7 +117,8 @@ bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformatt
             else {
                 node.second->setEvaluationValue(false);
             }
-            --index;
+            //same as --index, but more efficient than recalculation power
+           evaluation /= 2;
         }
         //Assignment generated
         //Now test values
