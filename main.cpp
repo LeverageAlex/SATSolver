@@ -33,7 +33,7 @@ int main() {
     bool solved = isSolveAble(unformattedFormula);
     if (solved)
     printCurrentAssignment(evalLeaves, unformattedFormula, true);
-    printTruthTable(evalLeaves, unformattedFormula);
+
 
     return 0;
 }
