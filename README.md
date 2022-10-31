@@ -16,7 +16,7 @@ which should be formated in this way:
 |    OR    |    ∨     |   &#124;   | 
 |   NOT    | ¬ |     -      |
 
-Example: A & (- B | C & ( - D ) )
+Example: A & ( - B | C & ( - D ) )
 It is necessary as shown above to leave a space between brackets, literals and negations.
 
 If the formula is solveable, the isSolveAble method will return true.

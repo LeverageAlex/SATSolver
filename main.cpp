@@ -33,6 +33,7 @@ int main() {
     bool solved = isSolveAble(unformattedFormula);
     if (solved)
     printCurrentAssignment(evalLeaves, unformattedFormula, true);
+    printTruthTable(evalLeaves, unformattedFormula);
 
     return 0;
 }
@@ -100,12 +101,12 @@ void generateEvalLeaves(std::set<string> &partialFormulas, std::map<string, Valu
  * @param printSteps
  */
 bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformattedFormula, bool printSteps) {
-    int upperBound = int (std::pow( 2, evalLeaves.size()));
+    int upperBound = int (1 << evalLeaves.size()); // upperBound = 2^evalLeaves.size()
     int index;
     for (int i = 0; i < upperBound; ++i) {
         int j = i;
         index = evalLeaves.size()-1;
-        int evaluation = int (std::pow(2, index));
+        int evaluation = int (1 << index); // evaluation = 2^index
         //Put int to binary values
         for (auto node: evalLeaves) {
 
@@ -118,7 +119,7 @@ bool generateAndTest(std::map<string, ValueNode*> &evalLeaves, string &unformatt
                 node.second->setEvaluationValue(false);
             }
             //same as --index, but more efficient than recalculation power
-           evaluation /= 2;
+           evaluation = evaluation >> 1; // evaluation /= 2
         }
         //Assignment generated
         //Now test values
@@ -161,7 +162,7 @@ bool evaluateExpression(std::map<string, ValueNode*> &evalLeaves, string unforma
     std::map<string, int> precedence = std::map<string, int>();
     precedence.insert(std::pair<string, int>("(", 0));
     precedence.insert(std::pair<string, int>(")", 0));
-    precedence.insert(std::pair<string, int>("|", 1));   
+    precedence.insert(std::pair<string, int>("|", 1));
     precedence.insert(std::pair<string, int>("&", 2));
     precedence.insert(std::pair<string, int>("-", 3));
 
@@ -306,8 +307,8 @@ inline void printAssignementTableLine(std::map<string, ValueNode*> &evalLeaves, 
             std::cout << " ";
         }
     }
-    if(solved) std::cout << "1" << std::endl;
-    else std::cout << "0" << std::endl;
+    if(solved) std::cout << "1" << "\n";
+    else std::cout << "0" << "\n";
 }
 
 /**
@@ -329,8 +330,9 @@ inline void printTruthTable(std::map<string, ValueNode*> &evalLeaves, string &un
  */
 void printSet(std::set<string> &setToPrint) {
     for (const string &part: partialFormulas) {
-        std::cout << part << std::endl;
+        std::cout << part << "\n";
     }
+    std::cout << std::endl;
 }
 
 
